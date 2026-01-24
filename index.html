@@ -156,28 +156,48 @@
         const contenedor = document.getElementById('contenedorCitas');
         
         // --- CONFIGURA TU NÚMERO AQUÍ ---
-        const miTelefono = "573225872120"; // Reemplaza por tu número real
+        const miTelefono = "573225872120";
 
-        // Cargar citas al abrir la app
         window.onload = mostrarCitas;
 
         form.addEventListener('submit', (e) => {
             e.preventDefault();
 
+            const nombre = document.getElementById('nombre').value;
+            const servicio = document.getElementById('servicio').value;
+            const fecha = document.getElementById('fecha').value;
+            const hora = document.getElementById('hora').value;
+
+            // --- LÓGICA DE VALIDACIÓN DE 45 MINUTOS ---
+            const nuevaCitaInicio = new Date(`${fecha}T${hora}`);
+            const citas = JSON.parse(localStorage.getItem('misCitas')) || [];
+            
+            // Revisar si hay conflicto con citas existentes
+            const conflicto = citas.find(cita => {
+                if (cita.fecha === fecha) {
+                    const existenteInicio = new Date(`${cita.fecha}T${cita.hora}`);
+                    const diferencia = Math.abs(nuevaCitaInicio - existenteInicio) / (1000 * 60); // Diferencia en minutos
+                    return diferencia < 45; // Si la diferencia es menor a 45 min, hay conflicto
+                }
+                return false;
+            });
+
+            if (conflicto) {
+                alert(`Lo sentimos, ya hay una cita agendada cerca de esa hora (${conflicto.hora}). Por favor elige un horario con al menos 45 minutos de diferencia.`);
+                return;
+            }
+
             const nuevaCita = {
                 id: Date.now(),
-                nombre: document.getElementById('nombre').value,
-                servicio: document.getElementById('servicio').value,
-                fecha: document.getElementById('fecha').value,
-                hora: document.getElementById('hora').value
+                nombre: nombre,
+                servicio: servicio,
+                fecha: fecha,
+                hora: hora
             };
 
-            // Guardar en LocalStorage
-            let citas = JSON.parse(localStorage.getItem('misCitas')) || [];
             citas.push(nuevaCita);
             localStorage.setItem('misCitas', JSON.stringify(citas));
 
-            // Enviar WhatsApp
             const texto = `¡Hola LA BARBERIA! Quiero agendar:%0A👤 *Nombre:* ${nuevaCita.nombre}%0A✂️ *Servicio:* ${nuevaCita.servicio}%0A📅 *Fecha:* ${nuevaCita.fecha}%0A⏰ *Hora:* ${nuevaCita.hora}`;
             window.open(`https://wa.me/${miTelefono}?text=${texto}`);
 
@@ -189,6 +209,8 @@
             let citas = JSON.parse(localStorage.getItem('misCitas')) || [];
             contenedor.innerHTML = '';
             
+            citas.sort((a, b) => new Date(`${a.fecha}T${a.hora}`) - new Date(`${b.fecha}T${b.hora}`));
+
             citas.forEach(cita => {
                 contenedor.innerHTML += `
                     <div class="cita-item">

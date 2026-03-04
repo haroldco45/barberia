@@ -2,8 +2,16 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>LA BARBERIA - Citas Online</title>
+
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#121212">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="La Barbería">
+    <link rel="apple-touch-icon" href="labarberia.PNG">
+
     <style>
         /* ESTILO ELEGANTE NEGRO Y DORADO */
         :root {
@@ -22,6 +30,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            overflow-x: hidden;
         }
 
         .container {
@@ -32,6 +41,7 @@
             border-radius: 20px;
             border: 1px solid var(--dorado);
             box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            box-sizing: border-box;
         }
 
         h1 {
@@ -40,6 +50,7 @@
             letter-spacing: 3px;
             text-transform: uppercase;
             margin-bottom: 25px;
+            font-size: 1.8rem;
         }
 
         .form-group {
@@ -61,6 +72,7 @@
             background: #121212;
             color: white;
             box-sizing: border-box;
+            font-size: 16px; /* Evita zoom automático en iPhone */
         }
 
         .btn-enviar {
@@ -74,12 +86,20 @@
             font-size: 1em;
             cursor: pointer;
             margin-top: 10px;
+            text-transform: uppercase;
+            transition: 0.3s;
+        }
+
+        .btn-enviar:active {
+            transform: scale(0.97);
+            opacity: 0.9;
         }
 
         /* LISTADO DE CITAS GUARDADAS */
         .citas-list {
             margin-top: 30px;
             width: 100%;
+            max-width: 450px;
         }
 
         h2 {
@@ -87,6 +107,7 @@
             border-bottom: 1px solid var(--dorado);
             padding-bottom: 10px;
             color: var(--dorado);
+            text-align: center;
         }
 
         .cita-item {
@@ -96,6 +117,12 @@
             margin-bottom: 10px;
             position: relative;
             border-left: 5px solid var(--dorado);
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .btn-borrar {
@@ -109,6 +136,23 @@
             width: 25px;
             height: 25px;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 0.7rem;
+            color: #666;
+        }
+
+        .vibras-logo {
+            color: #00b894;
+            font-weight: bold;
+            margin-top: 5px;
         }
     </style>
 </head>
@@ -151,6 +195,11 @@
         </div>
     </div>
 
+    <footer>
+        <p>© 2026 LA BARBERIA - Todos los derechos reservados</p>
+        <p class="vibras-logo">Desarrollado por Vibras Positivas</p>
+    </footer>
+
     <script>
         const form = document.getElementById('formCita');
         const contenedor = document.getElementById('contenedorCitas');
@@ -168,22 +217,21 @@
             const fecha = document.getElementById('fecha').value;
             const hora = document.getElementById('hora').value;
 
-            // --- LÓGICA DE VALIDACIÓN DE 45 MINUTOS ---
+            // Validación de conflicto (45 minutos)
             const nuevaCitaInicio = new Date(`${fecha}T${hora}`);
             const citas = JSON.parse(localStorage.getItem('misCitas')) || [];
             
-            // Revisar si hay conflicto con citas existentes
             const conflicto = citas.find(cita => {
                 if (cita.fecha === fecha) {
                     const existenteInicio = new Date(`${cita.fecha}T${cita.hora}`);
-                    const diferencia = Math.abs(nuevaCitaInicio - existenteInicio) / (1000 * 60); // Diferencia en minutos
-                    return diferencia < 45; // Si la diferencia es menor a 45 min, hay conflicto
+                    const diferencia = Math.abs(nuevaCitaInicio - existenteInicio) / (1000 * 60);
+                    return diferencia < 45;
                 }
                 return false;
             });
 
             if (conflicto) {
-                alert(`Lo sentimos, ya hay una cita agendada cerca de esa hora (${conflicto.hora}). Por favor elige un horario con al menos 45 minutos de diferencia.`);
+                alert(`Horario ocupado (${conflicto.hora}). Elige una hora con 45 min de diferencia.`);
                 return;
             }
 
@@ -217,17 +265,19 @@
                         <button class="btn-borrar" onclick="borrarCita(${cita.id})">×</button>
                         <strong>${cita.nombre}</strong><br>
                         <small>${cita.servicio}</small><br>
-                        <small>${cita.fecha} a las ${cita.hora}</small>
+                        <small>${cita.fecha} - ${cita.hora}</small>
                     </div>
                 `;
             });
         }
 
         function borrarCita(id) {
-            let citas = JSON.parse(localStorage.getItem('misCitas'));
-            citas = citas.filter(c => c.id !== id);
-            localStorage.setItem('misCitas', JSON.stringify(citas));
-            mostrarCitas();
+            if(confirm("¿Seguro que quieres eliminar esta cita?")) {
+                let citas = JSON.parse(localStorage.getItem('misCitas'));
+                citas = citas.filter(c => c.id !== id);
+                localStorage.setItem('misCitas', JSON.stringify(citas));
+                mostrarCitas();
+            }
         }
     </script>
 </body>

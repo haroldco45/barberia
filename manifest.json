@@ -1,0 +1,21 @@
+{
+  "short_name": "BarberiaApp",
+  "name": "LA BARBERIA - Citas",
+  "icons": [
+    {
+      "src": "labarberia.PNG",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "labarberia.PNG",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "index.html",
+  "background_color": "#121212",
+  "theme_color": "#c5a059",
+  "display": "standalone",
+  "orientation": "portrait"
+}
